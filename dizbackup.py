@@ -3,7 +3,9 @@ from datetime import datetime
 import pickle
 import gzip
 import shutil
-# Il programma grea una cartella di backup remoto se non esiste
+import yaml
+
+# Il programma crea una cartella di backup remoto se non esiste
 # la prima volta genera index.gz dal dizionario con i nomi dei file della cartella di lavoro locale
 # le volte successive aggiorna il dizionario e riscrive index.gz
 # nella cartella di backup crea una sottocartella (con data e ora di esecuzione) contenente
@@ -12,19 +14,21 @@ import shutil
 # NON SO SE QUESTA ERA LA LOGICA DELL'APPLICAZIONE
 # manca la parte per caricare il file s server remoto che per ora è manuale
 
-# cartella di lavoro locale INSERIRE !!!!!
-# workingDir = 'D:\\grana\\Articoli e info\\Arithmetic e Range Encoding'
-workingDir = 'C:\\Users\\guido\\Desktop\\Miacartella'
+config = {}
+try:
+    config = yaml.safe_load(open('config.yaml'))
+except Exception as ex:
+    print(f'Error {ex}')
+    exit()
 
+# cartella di lavoro locale
+workingDir = config['source_dir']
 # cartella di destinazione del backup remoto INSERIRE !!!!
-remoteBackupDir = 'C:\\Users\\guido\\Desktop\\RemoteBackup'
-
-# nome del file-dizionario (se esistente)
+remoteBackupDir = config['dest_dir']
+# nome del file-dizionario
 indexFile = remoteBackupDir + "\\index.gz"
-
 # inizializzazione dizionario
 index = {}
-
 # verifico se esiste una cartella di lavoro locale
 if os.path.exists(workingDir) and os.path.isdir(workingDir):
     print("\nCartella di lavoro locale " + workingDir)
@@ -106,7 +110,7 @@ if os.path.exists(workingDir) and os.path.isdir(workingDir):
                             index[fullpath] = os.path.getmtime(fullpath)
                             n_file_ins = n_file_ins + 1
                         except OSError as e:
-                            print("Error: %s : %s" % (file_path, e.strerror))
+                            print("Error: %s : %s" % (fullpath, e.strerror))
             if n_file_p > 0:
                 try:
                     pickle.dump(index, gzip.open(indexFile, "wb"))
@@ -122,7 +126,7 @@ if os.path.exists(workingDir) and os.path.isdir(workingDir):
                     print("\nErrore in pickle.dump(index, gzip.open(workingDir, wb)) \n")
             else:
                 print("\nNon ci sono file nella cartella di lavoro locale\n")
-        except OsError as err:
+        except OSError as err:
             print(err)
             print("\nCan't create backup subdirectory" + backupFolder)
     else:

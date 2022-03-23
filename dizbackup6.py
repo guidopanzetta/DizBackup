@@ -14,7 +14,7 @@ import yaml
 
 config = {}
 try:
-    config = yaml.safe_load(open('C:\\Users\\guido\\Desktop\\Working_Directory\\config.yaml'))
+    config = yaml.safe_load(open('config.yaml'))
 except Exception as ex:
     print(f'Error {ex}')
     exit()
